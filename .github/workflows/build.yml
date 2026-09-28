@@ -1,4 +1,4 @@
-name: Build APK
+name: Build and Release APK
 
 on:
   push:
@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - uses: actions/checkout@v3
@@ -41,10 +43,13 @@ jobs:
     - name: Build APK
       run: |
         cd network_inspector
-        flutter build apk --debug
+        flutter build apk --split-per-abi --debug
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
       with:
-        name: Network-Inspector-App
-        path: network_inspector/build/app/outputs/flutter-apk/app-debug.apk
+        tag_name: v1.0.${{ github.run_number }}
+        name: Network Inspector v1.0.${{ github.run_number }}
+        files: network_inspector/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
