@@ -1,5 +1,5 @@
 name: network_inspector
-description: "App for diagnosing network services and routers"
+description: "Network Inspector App"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,7 +10,6 @@ dependencies:
   flutter:
     sdk: flutter
   dartssh2: ^2.8.2
-  shared_preferences: ^2.2.2
   cupertino_icons: ^1.0.6
 
 dev_dependencies:
