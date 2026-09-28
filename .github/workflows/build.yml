@@ -24,14 +24,27 @@ jobs:
         flutter-version: '3.19.x'
         channel: 'stable'
 
+    - name: Setup Full Flutter Skeleton
+      run: |
+        mkdir -p temp_app
+        cp lib/main.dart temp_app/ 2>/dev/null || true
+        cp pubspec.yaml temp_app/ 2>/dev/null || true
+        flutter create --org com.example network_inspector
+        cp temp_app/main.dart network_inspector/lib/main.dart 2>/dev/null || true
+        cp temp_app/pubspec.yaml network_inspector/pubspec.yaml 2>/dev/null || true
+
     - name: Install dependencies
-      run: flutter pub get
+      run: |
+        cd network_inspector
+        flutter pub get
 
     - name: Build APK
-      run: flutter build apk --debug
+      run: |
+        cd network_inspector
+        flutter build apk --debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: Network-Inspector-App
-        path: build/app/outputs/flutter-apk/app-debug.apk
+        path: network_inspector/build/app/outputs/flutter-apk/app-debug.apk
