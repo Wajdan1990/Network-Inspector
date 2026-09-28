@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'dart:io';
 import 'package:dartssh2/dartssh2.dart';
 
@@ -31,41 +30,34 @@ class MainInspectorScreen extends StatefulWidget {
   State<MainInspectorScreen> createState() => _MainInspectorScreenState();
 }
 
-class _MainInspectorScreenState extends State<MainInspectorScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
+class _MainInspectorScreenState extends State<MainInspectorScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('فحص الخدمة والراوترات', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.network_check), text: 'فحص الإنترنت والـ DNS'),
-            Tab(icon: Icon(Icons.router), text: 'فحص الراوتر (SSH)'),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('فحص الخدمة والراوترات', style: TextStyle(fontWeight: FontWeight.bold)),
+          centerTitle: true,
+          bottom: const TabBar(
+            tabs: [
+              Tab(icon: Icon(Icons.network_check), text: 'فحص الاتصال'),
+              Tab(icon: Icon(Icons.router), text: 'فحص SSH'),
+            ],
+          ),
+        ),
+        body: const TabBarView(
+          children: [
+            NetworkTestTab(),
+            RouterSshTab(),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          NetworkTestTab(),
-          RouterSshTab(),
-        ],
       ),
     );
   }
 }
 
-// ---------------- 1. تبويب فحص الإنترنت والـ DNS ----------------
+// ---------------- 1. تبويب فحص الإنترنت والـ Ping ----------------
 class NetworkTestTab extends StatefulWidget {
   const NetworkTestTab({super.key});
 
@@ -77,10 +69,10 @@ class _NetworkTestTabState extends State<NetworkTestTab> {
   final List<Map<String, String>> _targets = [
     {'name': 'Google DNS', 'ip': '8.8.8.8'},
     {'name': 'Cloudflare DNS', 'ip': '1.1.1.1'},
-    {'name': 'Gateway / الراوتر', 'ip': '192.168.1.1'},
+    {'name': 'الراوتر / Gateway', 'ip': '192.168.1.1'},
   ];
 
-  Map<String, String> _results = {};
+  final Map<String, String> _results = {};
   bool _isTesting = false;
 
   Future<void> _runPingTests() async {
@@ -92,14 +84,14 @@ class _NetworkTestTabState extends State<NetworkTestTab> {
     for (var target in _targets) {
       final ip = target['ip']!;
       try {
-        final result = await Process.run('ping', ['-c', '3', '-w', '3', ip]);
+        final result = await Process.run('ping', ['-c', '2', '-w', '2', ip]);
         if (result.exitCode == 0) {
           _results[ip] = 'متصل (OK)';
         } else {
           _results[ip] = 'غير متصل (Timeout)';
         }
       } catch (e) {
-        _results[ip] = 'خطأ في الفحص';
+        _results[ip] = 'خطأ بالفحص';
       }
       setState(() {});
     }
@@ -117,8 +109,10 @@ class _NetworkTestTabState extends State<NetworkTestTab> {
         children: [
           ElevatedButton.icon(
             onPressed: _isTesting ? null : _runPingTests,
-            icon: _isTesting ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.play_arrow),
-            label: Text(_isTesting ? 'جاري الفحص...' : 'بدء فحص اتصال الشبكة'),
+            icon: _isTesting 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                : const Icon(Icons.play_arrow),
+            label: Text(_isTesting ? 'جاري الفحص...' : 'بدء فحص الشبكة'),
             style: ElevatedButton.styleFrom(
               minimumSize: const Size.fromHeight(50),
               backgroundColor: Colors.indigo,
@@ -137,8 +131,8 @@ class _NetworkTestTabState extends State<NetworkTestTab> {
                 return Card(
                   child: ListTile(
                     leading: Icon(
-                      isOk ? Icons.check_circle : Icons.error,
-                      color: isOk ? Colors.green : Colors.red,
+                      isOk ? Icons.check_circle : Icons.error_outline,
+                      color: isOk ? Colors.green : Colors.grey,
                     ),
                     title: Text(item['name']!),
                     subtitle: Text('IP: ${item['ip']}'),
@@ -233,10 +227,12 @@ class _RouterSshTabState extends State<RouterSshTab> {
               onPressed: _isLoading ? null : _testRouterConnection,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
-                backgroundColor: Colors.deepPurple,
+                backgroundColor: Colors.indigo,
                 foregroundColor: Colors.white,
               ),
-              child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('فحص حالة الراوتر'),
+              child: _isLoading 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                  : const Text('فحص حالة الراوتر'),
             ),
             const SizedBox(height: 20),
             Container(
