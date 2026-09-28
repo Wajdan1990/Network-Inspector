@@ -1,4 +1,4 @@
-name: Build Flutter APK
+name: Build Fixed Flutter APK
 
 on:
   push:
@@ -24,14 +24,27 @@ jobs:
         flutter-version: '3.19.x'
         channel: 'stable'
 
-    - name: Install dependencies
-      run: flutter pub get
+    - name: Generate Fresh Android Project Structure
+      run: |
+        mkdir -p backup_files
+        cp lib/main.dart backup_files/ 2>/dev/null || true
+        cp pubspec.yaml backup_files/ 2>/dev/null || true
+        flutter create --org com.network.app fresh_app
+        cp backup_files/main.dart fresh_app/lib/main.dart 2>/dev/null || true
+        cp backup_files/pubspec.yaml fresh_app/pubspec.yaml 2>/dev/null || true
+
+    - name: Get Dependencies
+      run: |
+        cd fresh_app
+        flutter pub get
 
     - name: Build Debug APK
-      run: flutter build apk --debug
+      run: |
+        cd fresh_app
+        flutter build apk --debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: NetworkInspector-APK
-        path: build/app/outputs/flutter-apk/app-debug.apk
+        path: fresh_app/build/app/outputs/flutter-apk/app-debug.apk
