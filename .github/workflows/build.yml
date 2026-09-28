@@ -1,4 +1,4 @@
-name: Build Fixed APK
+name: Build Flutter APK
 
 on:
   push:
@@ -21,29 +21,17 @@ jobs:
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.22.x'
+        flutter-version: '3.19.x'
         channel: 'stable'
 
-    - name: Rebuild Project Skeleton
-      run: |
-        mkdir -p temp_code
-        cp lib/main.dart temp_code/ 2>/dev/null || true
-        cp pubspec.yaml temp_code/ 2>/dev/null || true
-        rm -rf * .github
-        flutter create --org com.app.inspector network_inspector
-        cp -r network_inspector/* .
-        cp temp_code/main.dart lib/main.dart
-        cp temp_code/pubspec.yaml pubspec.yaml
-        rm -rf network_inspector temp_code
-
-    - name: Get Dependencies
+    - name: Install dependencies
       run: flutter pub get
 
     - name: Build Debug APK
       run: flutter build apk --debug
 
-    - name: Rename & Upload APK
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: NetworkInspector-App
+        name: NetworkInspector-APK
         path: build/app/outputs/flutter-apk/app-debug.apk
