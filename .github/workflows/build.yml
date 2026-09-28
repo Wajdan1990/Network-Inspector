@@ -1,4 +1,4 @@
-name: Build Fixed Flutter APK
+name: Build Cudy-Style Inspector APK
 
 on:
   push:
@@ -24,27 +24,27 @@ jobs:
         flutter-version: '3.19.x'
         channel: 'stable'
 
-    - name: Generate Fresh Android Project Structure
+    - name: Setup Project Structure
       run: |
         mkdir -p backup_files
         cp lib/main.dart backup_files/ 2>/dev/null || true
         cp pubspec.yaml backup_files/ 2>/dev/null || true
-        flutter create --org com.network.app fresh_app
-        cp backup_files/main.dart fresh_app/lib/main.dart 2>/dev/null || true
-        cp backup_files/pubspec.yaml fresh_app/pubspec.yaml 2>/dev/null || true
+        flutter create --org com.cudy.inspector app_cudy
+        cp backup_files/main.dart app_cudy/lib/main.dart 2>/dev/null || true
+        cp backup_files/pubspec.yaml app_cudy/pubspec.yaml 2>/dev/null || true
 
-    - name: Get Dependencies
+    - name: Fetch Dependencies
       run: |
-        cd fresh_app
+        cd app_cudy
         flutter pub get
 
-    - name: Build Debug APK
+    - name: Build Optimized Release APK
       run: |
-        cd fresh_app
-        flutter build apk --debug
+        cd app_cudy
+        flutter build apk --release --target-platform android-arm64 --split-per-abi
 
-    - name: Upload APK
+    - name: Upload Clean APK
       uses: actions/upload-artifact@v4
       with:
-        name: NetworkInspector-APK
-        path: fresh_app/build/app/outputs/flutter-apk/app-debug.apk
+        name: NetworkInspector-CudyStyle
+        path: app_cudy/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
